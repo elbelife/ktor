@@ -1,35 +1,53 @@
-sourceSets {
-    main {
-        kotlin.srcDir 'src'
-        resources.srcDir 'resources'
-    }
-    test {
-        kotlin.srcDir 'test'
-        resources.srcDir 'test-resources'
-    }
-}
+//
+//compileKotlinCommon {
+//    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
+//}
+//
+//compileTestKotlinCommon {
+//    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
+//}
+//
+//dependencies {
+//    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-common', version: kotlin_version
+//    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-common', version: coroutines_version
+//
+//    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io', version: kotlinx_io_version) {
+//        exclude(module: 'kotlin-stdlib-common')
+//    }
+//
+//    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: kotlinx_io_version) {
+//        exclude(module: 'kotlin-stdlib-common')
+//    }
+//
+//    testCompile "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
+//    testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
+//}
 
-
-compileKotlinCommon {
-    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
-}
-
-compileTestKotlinCommon {
-    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
-}
-
-dependencies {
-    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-common', version: kotlin_version
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-common', version: coroutines_version
-
-    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io', version: kotlinx_io_version) {
-        exclude(module: 'kotlin-stdlib-common')
-    }
-
-    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: kotlinx_io_version) {
-        exclude(module: 'kotlin-stdlib-common')
+kotlin {
+    targets {
     }
 
-    testCompile "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
+    sourceSets {
+        commonMain {
+            kotlin.srcDir 'commonMain'
+            dependencies {
+                implementation 'org.jetbrains.kotlin:kotlin-stdlib-common'
+                implementation group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-common', version: kotlin_version
+                implementation(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-common', version: coroutines_version)
+                implementation(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io', version: kotlinx_io_version)
+                implementation "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+
+                implementation(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: kotlinx_io_version)
+            }
+        }
+        commonTest {
+            kotlin.srcDir 'commonTest'
+            dependencies {
+                implementation "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
+                implementation "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
+            }
+        }
+
+
+    }
 }
