@@ -5,6 +5,7 @@ import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.Headers
 import io.ktor.util.date.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import okhttp3.*
 import kotlin.coroutines.*
@@ -19,7 +20,7 @@ internal class OkHttpResponse(
 
     override val headers: Headers = object : Headers {
         override val caseInsensitiveName: Boolean = false
-        private val instance = response.headers()!!
+        private val instance: okhttp3.Headers = response.headers()!!
 
         override fun getAll(name: String): List<String>? = instance.values(name)
 
@@ -35,6 +36,14 @@ internal class OkHttpResponse(
     override val version: HttpProtocolVersion = response.protocol().fromOkHttp()
 
     override val responseTime: GMTDate = GMTDate()
+
+    override fun close() {
+        super.close()
+
+        coroutineContext[Job]?.invokeOnCompletion {
+            response.body()?.close()
+        }
+    }
 }
 
 @Suppress("DEPRECATION")
