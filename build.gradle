@@ -44,11 +44,12 @@ allprojects {
     apply plugin: 'kotlin-multiplatform'
     apply plugin: 'kotlinx-atomicfu'
 
-    apply from: rootProject.file('gradle/dokka.gradle')
     apply from: rootProject.file('gradle/common.gradle')
+    apply from: rootProject.file('gradle/jvm.gradle')
     apply from: rootProject.file('gradle/native.gradle')
     apply from: rootProject.file('gradle/js.gradle')
-//    apply from: rootProject.file('gradle/publish.gradle')
+    apply from: rootProject.file('gradle/dokka.gradle')
+    apply from: rootProject.file('gradle/publish.gradle')
 
     kotlin {
         targets {
@@ -59,77 +60,35 @@ allprojects {
 
         configure(sourceSets) {
             def srcDir = name.endsWith('Main') ? 'src' : 'test'
+            def resourcesPrefix = name.endsWith('Test') ? 'test-' : ''
             def platform = name[0..-5]
 
-            kotlin.srcDir "$platform/$srcDir"
+            kotlin.srcDirs = ["$platform/$srcDir"]
+            resources.srcDirs = ["$platform/${resourcesPrefix}resources"]
         }
 
         configure(targets) {
             compilations.all { compilation ->
                 def compileTask = tasks.getByName(compilation.compileKotlinTaskName)
-                compileTask.kotlinOptions.freeCompilerArgs = [
+                compileTask.kotlinOptions.freeCompilerArgs += [
                     "-progressive",
                     "-Xuse-experimental=" +
                         "kotlin.Experimental," +
-                        "io.ktor.server.engine.EngineAPI," +
-                        "io.ktor.util.KtorExperimentalAPI" +
+                        "io.ktor.util.KtorExperimentalAPI," +
                         "io.ktor.util.InternalAPI"
                 ]
             }
+
+            if (project.name != 'ktor-server-core' && project.name.contains('ktor-server')) {
+                compileKotlinJvm.kotlinOptions.freeCompilerArgs +=
+                    ['-Xuse-experimental=kotlin.Experimental,io.ktor.server.engine.EngineAPI']
+            }
+
         }
+
     }
 
     configurations { testOutput }
 
-//    configure([compileKotlinJvm, compileTestKotlinJvm]) {
-//        kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental']
-//    }
-
-//    if (project.name != 'ktor-server-core' && project.name.contains('ktor-server')) {
-//        compileKotlinJvm.kotlinOptions.freeCompilerArgs += [
-//            '-Xuse-experimental=kotlin.Experimental,io.ktor.server.engine.EngineAPI'
-//        ]
-//    }
-
-//    def skipDokka = project.path.contains("ktor-samples") || project == rootProject || project.name in dokkaExcludes || platform != 'jvm'
-
-//    if (!skipDokka) {
-//        apply from: rootProject.file('gradle/dokka.gradle')
-//    }
-
-//    task sourceJar(type: Jar, dependsOn: classes) {
-//        classifier 'sources'
-//        from sourceSets.main.kotlin
-//        duplicatesStrategy DuplicatesStrategy.EXCLUDE
-//        def platformSrc = sourceSets.main.allSource
-//        def commonSrc = rootProject.sourceSets.main.allSource
-//        from(platformSrc + commonSrc)
-//    }
-//
-    task emptyJar(type: Jar) {
-        classifier 'javadoc'
-    }
-//
-//    tasks.build.dependsOn(['sourceJar', 'emptyJar'])
-
-//    task jarTest(type: Jar, dependsOn: jvmTestClasses) {
-//        from kotlin.targets.jvm.compilations.test.output
-//        classifier = 'test'
-//    }
-
-//    if (project.hasProperty('teamcity')) {
-//        afterEvaluate {
-//            tasks.withType(Class.forName('org.gradle.nativeplatform.test.tasks.RunTestExecutable')) {
-//                args '--ktest_logger=TEAMCITY'
-//            }
-//        }
-//    }
-//    configure(targets) {
-//        compilations.all { compilation ->
-//            def compileTask = tasks.getByName(compilation.compileKotlinTaskName)
-//            compileTask.kotlinOptions.freeCompilerArgs += [useExperimentalOptionString, "-progressive"]
-//        }
-//    }
+    tasks.build.dependsOn(['sourceJar', 'emptyJar'])
 }
-
-//afterReleaseBuild.dependsOn bintrayUpload
